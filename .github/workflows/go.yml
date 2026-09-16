@@ -44,7 +44,7 @@ jobs:
         go-version-file: 'kms/go.mod'
     - name: Test
       run: | 
-        go test ./kms ./kes
+        go test ./kms/... ./kes/...
   
   vulncheck:
     name: Vulncheck
@@ -58,7 +58,9 @@ jobs:
       with:
         go-version-file: 'kms/go.mod'
     - name: Get govulncheck
-      run: go install golang.org/x/vuln/cmd/govulncheck@latest
+      # Pinned because govulncheck's Go floor moves ahead of the toolchain
+      # this workflow derives from kms/go.mod: v1.8.0 requires Go 1.26.
+      run: go install golang.org/x/vuln/cmd/govulncheck@v1.7.0
       shell: bash
     - name: Run govulncheck
       env:

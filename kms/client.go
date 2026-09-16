@@ -132,11 +132,18 @@ func NewClient(conf *Config) (*Client, error) {
 		Hosts:        hosts,
 		RoundTripper: transport,
 	}
-	return &Client{
+	client := &Client{
 		direct: http.Client{Transport: lb.RoundTripper},
 		client: http.Client{Transport: lb},
 		lb:     lb,
-	}, nil
+	}
+
+	// Live does not send its request through the load balancer, which
+	// would never select a suspended host.
+	lb.Probe = func(ctx context.Context, host string) error {
+		return client.Live(ctx, &LivenessRequest{Hosts: []string{host}})
+	}
+	return client, nil
 }
 
 // Client is a KMS client. It performs client-side load balancing
